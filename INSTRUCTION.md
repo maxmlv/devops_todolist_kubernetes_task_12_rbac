@@ -53,3 +53,29 @@ kubectl auth can-i list pods -n todoapp --as=system:serviceaccount:todoapp:secre
 **Expected:** `no` for both — confirms the Role grants only `list` on `secrets`, not broader permissions (least-privilege check).
  
 ---
+
+## Make a `curl` request to list secrets from the deployment Pod
+
+```bash
+kubectl exec <pod-name> -it -n mateapp -- sh
+```
+
+Define environment variables:
+
+```bash
+APISERVER=https://kubernetes.default.svc
+SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+TOKEN=$(cat ${SERVICEACCOUNT}/token)
+CACERT=${SERVICEACCOUNT}/ca.crt
+```
+
+Make a request to list secrets:
+
+
+```bash
+curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/todoapp/secrets
+```
+
+An example of the responce:
+
+![RBAC](./screenshots/rbac.png)
